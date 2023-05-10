@@ -1,5 +1,3 @@
-# crashes on leaving edge
-
 import pygame
 import numpy as np
 
@@ -49,20 +47,39 @@ while running:
 
     window.fill(BACKGROUND_COLOR)
 
-    for alien in aliens:
+    for i, alien in enumerate(aliens):
         # Update alien position
         alien["position"] += alien["velocity"]
 
-        # Wrap alien around the screen
-        if alien["position"][0] > WINDOW_WIDTH:
-            alien["position"][0] = -font.size(alien["ascii"][0])[0]
-        if alien["position"][1] > WINDOW_HEIGHT:
-            alien["position"][1] = -font.size(alien["ascii"])[1]
+        # Check for collisions with the edges of the screen
+        if alien["position"][0] <= 0 or alien["position"][0] >= WINDOW_WIDTH - font.size(alien["ascii"][0])[0]:
+            alien["velocity"][0] *= -1
+        if alien["position"][1] <= 0 or alien["position"][1] >= WINDOW_HEIGHT - font.get_linesize() * len(alien["ascii"]):
+            alien["velocity"][1] *= -1
+
+        # Check for collisions with other aliens
+        for j, other_alien in enumerate(aliens):
+            if i != j:
+                if pygame.Rect(
+                    alien["position"][0],
+                    alien["position"][1],
+                    font.size(alien["ascii"][0])[0],
+                    font.get_linesize() * len(alien["ascii"])
+                ).colliderect(
+                    pygame.Rect(
+                        other_alien["position"][0],
+                        other_alien["position"][1],
+                        font.size(other_alien["ascii"][0])[0],
+                        font.get_linesize() * len(other_alien["ascii"])
+                    )
+                ):
+                    alien["velocity"] *= -1
+                    other_alien["velocity"] *= -1
 
         # Draw alien
-        for i, line in enumerate(alien["ascii"]):
+        for j, line in enumerate(alien["ascii"]):
             text_surface = font.render(line, True, alien["color"])
-            window.blit(text_surface, alien["position"] + np.array([0, i * font.get_linesize()]))
+            window.blit(text_surface, alien["position"] + np.array([0, j * font.get_linesize()]))
 
     pygame.display.flip()
     clock.tick(FPS)
