@@ -1,3 +1,5 @@
+# crashes on leaving edge
+
 import pygame
 import numpy as np
 
@@ -5,8 +7,29 @@ import numpy as np
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
 FPS = 60
-TEXT_COLOR = (255, 255, 255)  # White
 BACKGROUND_COLOR = (0, 0, 0)  # Black
+
+# Alien properties
+aliens = [
+    {
+        "ascii": ["  ___  ", " / _ \ ", "| (_) |", " \___/ "],
+        "color": (255, 0, 0),  # Red
+        "position": np.array([100, 100]),
+        "velocity": np.array([1, 1])
+    },
+    {
+        "ascii": ["  ____ ", " / ___|", "| |    ", "| |___ ", " \____|"],
+        "color": (0, 255, 0),  # Green
+        "position": np.array([200, 200]),
+        "velocity": np.array([-1, 1])
+    },
+    {
+        "ascii": ["   __  ", "  / _| ", " | |_  ", " |  _| ", " |_|   "],
+        "color": (0, 0, 255),  # Blue
+        "position": np.array([300, 300]),
+        "velocity": np.array([1, -1])
+    }
+]
 
 # Initialize Pygame
 pygame.init()
@@ -15,14 +38,7 @@ window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption("Demoscene Game")
 
 # Create font object
-font = pygame.font.Font(None, 36)
-
-# Create text
-text_surface = font.render("Hello, Demoscene!", True, TEXT_COLOR)
-
-# Text position and velocity
-text_pos = np.array([WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2])
-text_velocity = np.array([1, 0])
+font = pygame.font.Font(None, 18)
 
 # Main game loop
 running = True
@@ -33,15 +49,20 @@ while running:
 
     window.fill(BACKGROUND_COLOR)
 
-    # Update text position
-    text_pos += text_velocity
+    for alien in aliens:
+        # Update alien position
+        alien["position"] += alien["velocity"]
 
-    # Wrap text around the screen
-    if text_pos[0] > WINDOW_WIDTH:
-        text_pos[0] = -text_surface.get_width()
+        # Wrap alien around the screen
+        if alien["position"][0] > WINDOW_WIDTH:
+            alien["position"][0] = -font.size(alien["ascii"][0])[0]
+        if alien["position"][1] > WINDOW_HEIGHT:
+            alien["position"][1] = -font.size(alien["ascii"])[1]
 
-    # Draw text
-    window.blit(text_surface, text_pos)
+        # Draw alien
+        for i, line in enumerate(alien["ascii"]):
+            text_surface = font.render(line, True, alien["color"])
+            window.blit(text_surface, alien["position"] + np.array([0, i * font.get_linesize()]))
 
     pygame.display.flip()
     clock.tick(FPS)
